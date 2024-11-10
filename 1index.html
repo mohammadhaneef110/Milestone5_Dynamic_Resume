@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Resume</title>
+    <link rel="stylesheet" href="1style.css">
+</head>
+<body>
+    <div id="resume-container">
+        <!-- Left Section -->
+        <div class="left-section">
+            <div class="profile-picture">
+                <img id="profile-image" src="profile-placeholder.jpg" alt="Profile Image">
+                <input type="file" id="image-upload" accept="image/*" style="display: none;">
+                <button id="change-image-btn">Change Image</button>
+            </div>
+            <h2 id="display-name"></h2>
+            <h2 id="display-image-upload"></h2>
+            <p id="display-email"></p>
+            <p id="display-phone"></p>
+            <p id="display-address"></p>
+            
+            <div class="skills">
+                <h3>Skills</h3>
+                <p id="display-skills"></p>
+            </div>
+            
+            <div class="languages">
+                <h3>Languages</h3>
+                <p id="display-languages"></p>
+            </div>
+        </div>
+
+        <!-- Right Section -->
+        <div class="right-section">
+            <div class="section">
+                <h3>Education</h3>
+                <p id="display-education"></p>
+            </div>
+
+            <div class="section">
+                <h3>Experience</h3>
+                <p id="display-experience"></p>
+            </div>
+
+            <div class="section">
+                <h3>Projects</h3>
+                <p id="display-projects"></p>
+            </div>
+
+            <div class="section">
+                <h3>Certifications</h3>
+                <p id="display-certifications"></p>
+            </div>
+
+            <div class="section">
+                <h3>Hobbies</h3>
+                <p id="display-hobbies"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buttons for editing, downloading, and sharing -->
+    <div class="buttons">
+        <button id="edit-btn">Edit</button>
+        <button id="download-btn">Download PDF</button>
+        <button id="share-btn">Share Link</button>
+    </div>
+
+    <script>
+        // Load data from localStorage and display on the template
+        document.addEventListener("DOMContentLoaded", function() {
+            const formData = JSON.parse(localStorage.getItem('formData'));
+            
+            if (formData) {
+                document.getElementById('display-image-upload').innerText = formData.image-upload;
+                document.getElementById('display-name').innerText = formData.name;
+                document.getElementById('display-email').innerText = formData.email;
+                document.getElementById('display-phone').innerText = formData.phone;
+                document.getElementById('display-address').innerText = formData.address;
+                document.getElementById('display-education').innerText = formData.education;
+                document.getElementById('display-skills').innerText = formData.skills;
+                document.getElementById('display-experience').innerText = formData.experience;
+                document.getElementById('display-projects').innerText = formData.projects;
+                document.getElementById('display-languages').innerText = formData.languages;
+                document.getElementById('display-certifications').innerText = formData.certifications;
+                document.getElementById('display-hobbies').innerText = formData.hobbies;
+
+                // Load profile image if exists
+                if (formData.profileImage) {
+                    document.getElementById('profile-image').src = formData.profileImage;
+                }
+            }
+        });
+
+        // Image upload functionality
+        document.getElementById('change-image-btn').addEventListener('click', function() {
+            document.getElementById('image-upload').click();
+        });
+
+        document.getElementById('image-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('profile-image').src = event.target.result;
+                    
+                    // Save image to localStorage
+                    const formData = JSON.parse(localStorage.getItem('formData')) || {};
+                    formData.profileImage = event.target.result;
+                    localStorage.setItem('formData', JSON.stringify(formData));
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Edit button to make content editable
+        document.getElementById('edit-btn').addEventListener('click', function() {
+            document.querySelectorAll('#resume-container p, #resume-container h2').forEach(element => {
+                element.contentEditable = true;
+                element.style.border = "1px solid #ddd";
+            });
+            
+        });
+
+        // Download PDF functionality
+        document.getElementById('download-btn').addEventListener('click', function() {
+            const { jsPDF } = window.jspdf;
+            const resume = document.getElementById('resume-container');
+
+            html2canvas(resume).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save('resume.pdf');
+            });
+        });
+
+        // Share functionality
+        document.getElementById('share-btn').addEventListener('click', function() {
+            const uniqueId = Math.random().toString(36).substring(2, 15);
+            const baseURL = window.location.origin + window.location.pathname;
+            const shareableLink = `${baseURL}?resume=${uniqueId}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My Resume',
+                    text: 'Check out my resume!',
+                    url: shareableLink
+                }).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(shareableLink).then(() => {
+                    alert('Unique resume link copied to clipboard!');
+                });
+            }
+        });
+    </script>
+    
+
+    <!-- Include html2canvas and jsPDF libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</body>
+</html>
